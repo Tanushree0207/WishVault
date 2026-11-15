@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Budget Manager – WishVault{% endblock %}
+{% block page_title %}Budget Manager{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h2>Monthly Shopping Budget</h2>
+  <p>Plan, monitor and control your personal shopping expenditure with real-time budget tracking.</p>
+</div>
+
+<!-- Month Selector Bar -->
+<div class="card" style="margin-bottom: 2rem; padding: 1rem 1.5rem;">
+  <form method="GET" action="{{ url_for('budget.index') }}" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <span style="font-weight: 700; color: var(--text-main);">Viewing Period:</span>
+      <select name="month" class="form-control" style="width: auto; padding: 0.5rem 1rem; border-radius: var(--radius-full);" onchange="this.form.submit()">
+        {% for m in range(1, 13) %}
+          <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>
+            {{ ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m-1] }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="year" class="form-control" style="width: auto; padding: 0.5rem 1rem; border-radius: var(--radius-full);" onchange="this.form.submit()">
+        {% for y in range(2023, 2030) %}
+          <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="font-size: 0.88rem; color: var(--text-muted);">
+      Active Budget Cycle: <strong>{{ month_name }} {{ selected_year }}</strong>
+    </div>
+  </form>
+</div>
+
+<!-- Warning / Exceeded Banners -->
+{% if is_budget_exceeded %}
+  <div class="alert alert-danger" style="border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem;" role="alert">
+    <div style="font-size: 1.8rem;">🚨</div>
+    <div>
+      <h4 style="color: var(--danger-text); margin-bottom: 0.25rem;">Budget Exceeded Alert</h4>
+      <p style="color: var(--danger-text); margin: 0;">
+        You have spent <strong>{{ month_spent | currency_inr }}</strong> against your budget of <strong>{{ monthly_budget | currency_inr }}</strong> (<strong>{{ spent_percentage }}%</strong>).
+        You are over budget by <strong>{{ (month_spent - monthly_budget) | currency_inr }}</strong>.
+      </p>
+    </div>
+  </div>
+{% elif is_budget_warning %}
+  <div class="alert alert-warning" style="border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem;" role="alert">
+    <div style="font-size: 1.8rem;">🔔</div>
+    <div>
+      <h4 style="color: var(--warning-text); margin-bottom: 0.25rem;">80% Threshold Warning</h4>
+      <p style="color: var(--warning-text); margin: 0;">
+        Heads up! You have utilized <strong>{{ spent_percentage }}%</strong> of your monthly shopping budget.
+        Only <strong>{{ remaining_budget | currency_inr }}</strong> remains before you reach your limit.
+      </p>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Key Budget Metrics Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon lavender">🎯</div>
+    <div class="stat-content">
+      <div class="stat-label">Monthly Budget</div>
+      <div class="stat-value">{{ monthly_budget | currency_inr }}</div>
+      <div class="stat-subtext">Planned for {{ month_name }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon peach">💸</div>
+    <div class="stat-content">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value">{{ month_spent | currency_inr }}</div>
+      <div class="stat-subtext">Actual purchase sum</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon {% if is_budget_exceeded %}peach{% elif is_budget_warning %}blush{% else %}mint{% endif %}">
+      {% if is_budget_exceeded %}⚠️{% else %}💰{% endif %}
+    </div>
+    <div class="stat-content">
+      <div class="stat-label">Remaining Budget</div>
+      <div class="stat-value" style="color: {% if is_budget_exceeded %}var(--danger-text){% else %}var(--text-main){% endif %};">
+        {{ remaining_budget | currency_inr }}
+      </div>
+      <div class="stat-subtext">
+        {% if is_budget_exceeded %}Exceeded{% else %}Available to spend{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon blush">📈</div>
+    <div class="stat-content">
+      <div class="stat-label">Budget Utilized</div>
+      <div class="stat-value">{{ spent_percentage }}%</div>
+      <div class="stat-subtext">Of monthly allocation</div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Meter Section -->
+<div class="card" style="margin-bottom: 2rem;">
+  <div class="card-header">
+    <h3 class="card-title"><span>📊</span> Budget Utilization Meter</h3>
+    <span style="font-weight: 700; color: {% if is_budget_exceeded %}var(--danger-text){% elif is_budget_warning %}var(--warning-text){% else %}var(--primary-600){% endif %};">
+      {{ spent_percentage }}%
+    </span>
+  </div>
+
+  <div class="progress-container" style="height: 20px; margin-bottom: 1rem;">
+    <div class="progress-bar {% if is_budget_exceeded %}exceeded{% elif is_budget_warning %}warning{% else %}normal{% endif %}"
+         style="width: {{ [spent_percentage, 100] | min }}%;">
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted);">
+    <span>₹0.00 (0%)</span>
+    <span style="color:var(--warning-text); font-weight:600;">80% Threshold Marker</span>
+    <span>{{ monthly_budget | currency_inr }} (100%)</span>
+  </div>
+</div>
+
+<!-- Two Columns: Set Budget Form & Monthly Trend Chart -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <!-- Set / Update Monthly Budget Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><span>✏️</span> Set / Adjust Budget</h3>
+    </div>
+
+    <form method="POST" action="{{ url_for('budget.index', year=selected_year, month=selected_month) }}">
+      {{ form.csrf_token }}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="month">{{ form.month.label.text }}</label>
+          {{ form.month(class="form-control" + (" is-invalid" if form.month.errors else ""), id="month") }}
+          {% for error in form.month.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="year">{{ form.year.label.text }}</label>
+          {{ form.year(class="form-control" + (" is-invalid" if form.year.errors else ""), id="year") }}
+          {% for error in form.year.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="monthly_budget">{{ form.monthly_budget.label.text }} *</label>
+        {{ form.monthly_budget(class="form-control" + (" is-invalid" if form.monthly_budget.errors else ""), step="0.01", min="0.00", placeholder="e.g. 15000.00", id="monthly_budget") }}
+        <div class="form-hint">Enter your target maximum shopping expenditure in INR.</div>
+        {% for error in form.monthly_budget.errors %}
+          <div class="form-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div style="margin-top: 1.75rem;">
+        {{ form.submit(class="btn btn-primary btn-block") }}
+      </div>
+    </form>
+  </div>
+
+  <!-- Historical Budget vs Spending Chart -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><span>📈</span> 6-Month Budget vs Spending</h3>
+    </div>
+    <div style="height: 250px; position: relative;">
+      <canvas id="budgetTrendsChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Purchases In Selected Month -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title"><span>🛍️</span> Purchases in {{ month_name }} {{ selected_year }}</h3>
+    <span class="badge" style="background:var(--primary-100); color:var(--primary-700);">
+      {{ monthly_purchases | length }} Purchases
+    </span>
+  </div>
+
+  {% if monthly_purchases %}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Date</th>
+            <th>Amount Paid</th>
+            <th>Notes</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in monthly_purchases %}
+            <tr>
+              <td>
+                <div style="font-weight:700; color:var(--text-main);">
+                  {{ p.product.name if p.product else "Item" }}
+                </div>
+              </td>
+              <td>{{ p.purchase_date.strftime('%d %b %Y') }}</td>
+              <td><span style="font-weight:700; color:var(--mint-600);">{{ p.formatted_amount }}</span></td>
+              <td><span style="font-size:0.85rem; color:var(--text-muted);">{{ p.notes or "—" }}</span></td>
+              <td style="text-align: right;">
+                <form action="{{ url_for('purchases.undo_purchase', purchase_id=p.id) }}" method="POST" style="margin:0; display:inline-block;" onsubmit="return confirm('Revert purchase? Spending and budget will be recalculated.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline btn-sm">
+                    ↩ Undo
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align:center; padding:2rem 1rem; color:var(--text-muted);">
+      No purchases recorded for {{ month_name }} {{ selected_year }}.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js for beautiful pastel trend visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById("budgetTrendsChart");
+    if (!ctx) return;
+
+    const trendsData = {{ monthly_trends | tojson }};
+    const labels = trendsData.map(d => d.label);
+    const budgetValues = trendsData.map(d => d.budget);
+    const spentValues = trendsData.map(d => d.spent);
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Budget (₹)',
+            data: budgetValues,
+            backgroundColor: 'rgba(196, 181, 253, 0.65)',
+            borderColor: '#8B5CF6',
+            borderWidth: 1.5,
+            borderRadius: 8,
+          },
+          {
+            label: 'Actual Spent (₹)',
+            data: spentValues,
+            backgroundColor: 'rgba(244, 114, 182, 0.75)',
+            borderColor: '#EC4899',
+            borderWidth: 1.5,
+            borderRadius: 8,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              font: {
+                family: "'Plus Jakarta Sans', sans-serif",
+                weight: '600'
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(context.parsed.y);
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '₹' + (value >= 1000 ? (value / 1000) + 'k' : value);
+              }
+            },
+            grid: {
+              color: '#ECE8F6'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% from "products/_card.html" import render_product_card %}
+
+{% block title %}{{ collection.name }} – WishVault{% endblock %}
+{% block page_title %}{{ collection.name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <a href="{{ url_for('collections.index') }}" class="btn btn-secondary btn-sm" style="margin-bottom: 1rem;">
+    ← All Collections
+  </a>
+
+  <div class="card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.5rem; padding: 1.75rem 2rem;">
+    <div style="display:flex; align-items:center; gap:1.25rem;">
+      <div class="collection-icon" style="margin:0; width:64px; height:64px; font-size:2rem;
+        {% if collection.color == 'blush' %}background: var(--blush-100); color: var(--blush-500);
+        {% elif collection.color == 'peach' %}background: var(--peach-100); color: var(--peach-500);
+        {% elif collection.color == 'mint' %}background: var(--mint-100); color: var(--mint-600);
+        {% elif collection.color == 'sky' %}background: var(--sky-100); color: var(--sky-600);
+        {% elif collection.color == 'rose' %}background: #FFE4E6; color: #E11D48;
+        {% else %}background: var(--primary-100); color: var(--primary-600);{% endif %}
+      ">
+        {% if collection.icon == 'shirt' %}👗
+        {% elif collection.icon == 'laptop' %}💻
+        {% elif collection.icon == 'heart' %}💄
+        {% elif collection.icon == 'book' %}📚
+        {% elif collection.icon == 'watch' %}⌚
+        {% elif collection.icon == 'home' %}🏡
+        {% elif collection.icon == 'gift' %}🎁
+        {% elif collection.icon == 'tag' %}🏷️
+        {% else %}✨{% endif %}
+      </div>
+
+      <div>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.25rem;">{{ collection.name }}</h1>
+        <p style="margin:0;">{{ collection.description or "Curated wishlist collection" }}</p>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      <a href="{{ url_for('products.create') }}" class="btn btn-primary btn-sm">
+        <span>✨</span> Add Product
+      </a>
+      {% if not collection.is_default %}
+        <a href="{{ url_for('collections.edit', collection_id=collection.id) }}" class="btn btn-secondary btn-sm">
+          ✏️ Edit
+        </a>
+        <form action="{{ url_for('collections.delete', collection_id=collection.id) }}" method="POST" style="margin:0;" onsubmit="return confirm('Delete collection \'{{ collection.name }}\'? Contained products will remain in your vault under Uncategorized.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">
+            🗑️ Delete
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Products in this collection -->
+{% if products %}
+  <div class="products-grid">
+    {% for product in products %}
+      {{ render_product_card(product) }}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 500px; margin: 3rem auto;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+    <h3>No items in {{ collection.name }} yet</h3>
+    <p style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+      Add products to this collection to curate your wishlist.
+    </p>
+    <a href="{{ url_for('products.create') }}" class="btn btn-primary">
+      <span>✨</span> Add Product to {{ collection.name }}
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

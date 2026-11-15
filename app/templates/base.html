@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}WishVault – Personal Shopping & Wishlist Manager{% endblock %}</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans for refined typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  {% if current_user.is_authenticated %}
+  <div class="app-layout">
+    <!-- Overlay for mobile drawer -->
+    <div id="sidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(45,39,56,0.4); z-index:95;"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <a href="{{ url_for('main.dashboard') }}" class="brand-logo">
+          <div class="brand-icon">✨</div>
+          <span class="brand-text">WishVault</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="{{ url_for('products.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('products.') %}active{% endif %}">
+          <span class="nav-icon">💖</span>
+          <span>My Wishlist</span>
+        </a>
+
+        <a href="{{ url_for('collections.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('collections.') %}active{% endif %}">
+          <span class="nav-icon">🗂️</span>
+          <span>Collections</span>
+        </a>
+
+        <a href="{{ url_for('purchases.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('purchases.') %}active{% endif %}">
+          <span class="nav-icon">🛍️</span>
+          <span>Shopping Tracker</span>
+        </a>
+
+        <a href="{{ url_for('budget.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('budget.') %}active{% endif %}">
+          <span class="nav-icon">💰</span>
+          <span>Budget Manager</span>
+        </a>
+
+        <a href="{{ url_for('auth.profile') }}" class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-snippet">
+          <div class="user-avatar">
+            {{ current_user.full_name[0] | upper }}
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ current_user.full_name }}</div>
+            <div class="user-role">{{ current_user.email }}</div>
+          </div>
+        </div>
+        <form action="{{ url_for('auth.logout') }}" method="POST" style="margin: 0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-secondary btn-sm btn-block" style="border-radius: var(--radius-sm);">
+            <span>🚪</span> Sign Out
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Sticky Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Navigation">
+            ☰
+          </button>
+          <h2 class="topbar-title">{% block page_title %}Overview{% endblock %}</h2>
+        </div>
+
+        <div class="topbar-right">
+          <a href="{{ url_for('products.create') }}" class="btn btn-primary btn-sm">
+            <span>✨</span> Add Product
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Body -->
+      <div class="page-container">
+        <!-- Flash Alert Messages -->
+        <div class="alerts-container">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                  <span>
+                    {% if category == 'success' %}🎉
+                    {% elif category == 'danger' %}⚠️
+                    {% elif category == 'warning' %}🔔
+                    {% else %}💡{% endif %}
+                  </span>
+                  <div>{{ message }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Reusable Mark-as-Purchased Native Modal -->
+  <dialog id="purchaseModal">
+    <div class="dialog-header">
+      <h3 style="display:flex; align-items:center; gap:0.5rem;">
+        <span>🎉</span> Mark as Purchased
+      </h3>
+      <button type="button" class="dialog-close" data-close-dialog aria-label="Close">&times;</button>
+    </div>
+    <form id="purchaseModalForm" method="POST" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <p style="margin-bottom: 1.25rem; font-size: 0.95rem;">
+        Marking <strong id="modalProductName">this item</strong> as purchased will update your spending stats and monthly budget!
+      </p>
+
+      <div class="form-group">
+        <label class="form-label" for="modalAmountInput">Actual Amount Paid (INR ₹)</label>
+        <input type="number" step="0.01" min="0.01" class="form-control" id="modalAmountInput" name="actual_amount" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalDateInput">Purchase Date</label>
+        <input type="date" class="form-control" id="modalDateInput" name="purchase_date" value="{{ None | default('', true) }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalNotesInput">Notes / Store / Order ID (Optional)</label>
+        <textarea class="form-control" id="modalNotesInput" name="notes" rows="2" placeholder="e.g. Bought on Diwali sale with cashback"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+        <button type="button" class="btn btn-secondary" data-close-dialog>Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Purchase</button>
+      </div>
+    </form>
+  </dialog>
+
+  {% else %}
+  <!-- Public Layout (Landing / Auth) -->
+  <header style="background:var(--bg-surface); border-bottom:1px solid var(--border-subtle); padding:1rem 2rem;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between;">
+      <a href="{{ url_for('main.index') }}" class="brand-logo">
+        <div class="brand-icon">✨</div>
+        <span class="brand-text">WishVault</span>
+      </a>
+      <div style="display:flex; gap:0.75rem; align-items:center;">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;">
+    <div class="page-container" style="max-width:1100px;">
+      <!-- Flash Alert Messages -->
+      <div class="alerts-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                <span>
+                  {% if category == 'success' %}🎉
+                  {% elif category == 'danger' %}⚠️
+                  {% elif category == 'warning' %}🔔
+                  {% else %}💡{% endif %}
+                </span>
+                <div>{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      {% block public_content %}{% endblock %}
+    </div>
+  </main>
+  {% endif %}
+
+  <!-- Core JavaScript -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script>
+    // Ensure default date in purchase modal is today
+    const dateInput = document.getElementById("modalDateInput");
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

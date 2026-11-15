@@ -1,0 +1,1 @@
+# WishVault automated test suite

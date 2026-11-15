@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Collections – WishVault{% endblock %}
+{% block page_title %}Collections{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h2>Your Wishlist Collections</h2>
+    <p>Organize dream items by aesthetic category and lifestyle interests.</p>
+  </div>
+  <a href="{{ url_for('collections.create') }}" class="btn btn-primary">
+    <span>✨</span> New Collection
+  </a>
+</div>
+
+<div class="collections-grid">
+  {% for col in collections %}
+    <div class="collection-card">
+      <div class="collection-icon" style="
+        {% if col.color == 'blush' %}background: var(--blush-100); color: var(--blush-500);
+        {% elif col.color == 'peach' %}background: var(--peach-100); color: var(--peach-500);
+        {% elif col.color == 'mint' %}background: var(--mint-100); color: var(--mint-600);
+        {% elif col.color == 'sky' %}background: var(--sky-100); color: var(--sky-600);
+        {% elif col.color == 'rose' %}background: #FFE4E6; color: #E11D48;
+        {% else %}background: var(--primary-100); color: var(--primary-600);{% endif %}
+      ">
+        {% if col.icon == 'shirt' %}👗
+        {% elif col.icon == 'laptop' %}💻
+        {% elif col.icon == 'heart' %}💄
+        {% elif col.icon == 'book' %}📚
+        {% elif col.icon == 'watch' %}⌚
+        {% elif col.icon == 'home' %}🏡
+        {% elif col.icon == 'gift' %}🎁
+        {% elif col.icon == 'tag' %}🏷️
+        {% else %}✨{% endif %}
+      </div>
+
+      <h3 class="collection-title">
+        <a href="{{ url_for('collections.detail', collection_id=col.id) }}" style="color: inherit;">
+          {{ col.name }}
+        </a>
+      </h3>
+
+      <p class="collection-desc">
+        {{ col.description or "Organized products collection" }}
+      </p>
+
+      <div class="collection-meta">
+        <div>
+          <strong>{{ col.products.count() }}</strong> items
+        </div>
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <a href="{{ url_for('collections.detail', collection_id=col.id) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.65rem;">
+            Explore →
+          </a>
+          {% if not col.is_default %}
+            <a href="{{ url_for('collections.edit', collection_id=col.id) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem;" title="Edit Collection">
+              ✏️
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% if uncategorized_count > 0 %}
+    <div class="collection-card" style="border-style: dashed;">
+      <div class="collection-icon" style="background: var(--bg-surface-alt); color: var(--text-light);">
+        🏷️
+      </div>
+      <h3 class="collection-title">
+        <a href="{{ url_for('products.index', collection=0) }}" style="color: inherit;">
+          Uncategorized
+        </a>
+      </h3>
+      <p class="collection-desc">General items not assigned to any specific collection.</p>
+      <div class="collection-meta">
+        <div><strong>{{ uncategorized_count }}</strong> items</div>
+        <a href="{{ url_for('products.index', collection=0) }}" class="btn btn-secondary btn-sm">Explore →</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

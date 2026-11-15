@@ -1,0 +1,82 @@
+{% macro render_product_card(product) %}
+<div class="product-card" id="product-card-{{ product.id }}">
+  <div class="product-image-wrap">
+    <div class="product-badge-wrap">
+      {% if product.is_purchased %}
+        <span class="badge badge-purchased">✓ Purchased</span>
+      {% endif %}
+      {% if product.collection %}
+        <span class="badge badge-collection">{{ product.collection.name }}</span>
+      {% else %}
+        <span class="badge badge-collection">General</span>
+      {% endif %}
+    </div>
+
+    {% if product.image_url %}
+      <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="product-image-fallback" style="display: none;">
+        <span>✨ WishVault</span>
+      </div>
+    {% else %}
+      <div class="product-image-fallback">
+        <span>✨ WishVault</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="product-body">
+    <h3 class="product-title" title="{{ product.name }}">
+      <a href="{{ url_for('products.detail', product_id=product.id) }}" style="color: inherit;">
+        {{ product.name }}
+      </a>
+    </h3>
+
+    {% if product.description %}
+      <p class="product-desc">{{ product.description }}</p>
+    {% else %}
+      <p class="product-desc" style="font-style: italic; color: var(--text-light);">No notes added yet.</p>
+    {% endif %}
+
+    <div class="product-price-row">
+      <div>
+        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); font-weight: 700;">Price</div>
+        <div class="product-price">{{ product.formatted_price }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.75rem; color: var(--text-light);">
+          Added {{ product.created_at.strftime('%d %b') }}
+        </span>
+      </div>
+    </div>
+
+    <div class="product-actions">
+      <a href="{{ url_for('products.detail', product_id=product.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;" title="View Product Details">
+        View
+      </a>
+
+      <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-secondary btn-sm" title="Edit Product">
+        ✏️
+      </a>
+
+      {% if not product.is_purchased %}
+        <button type="button"
+                class="btn btn-blush btn-sm"
+                data-open-purchase-modal
+                data-product-id="{{ product.id }}"
+                data-product-name="{{ product.name }}"
+                data-product-price="{{ product.price }}"
+                title="Mark as Purchased">
+          🛍️ Buy
+        </button>
+      {% endif %}
+
+      <form action="{{ url_for('products.delete', product_id=product.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to remove \'{{ product.name }}\' from your wishlist?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-danger btn-sm" title="Delete Product">
+          🗑️
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endmacro %}

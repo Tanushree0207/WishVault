@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Tracker – WishVault{% endblock %}
+{% block page_title %}Shopping Tracker{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h2>Fulfilled Wishes & Purchase Tracker</h2>
+  <p>Track your real-world purchases, verify actual amounts paid, and manage purchase history.</p>
+</div>
+
+<!-- Key Purchase Statistics Cards -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+  <div class="stat-card">
+    <div class="stat-icon mint">🛍️</div>
+    <div class="stat-content">
+      <div class="stat-label">Total Purchased</div>
+      <div class="stat-value">{{ purchases | length }}</div>
+      <div class="stat-subtext">Completed items</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon peach">💸</div>
+    <div class="stat-content">
+      <div class="stat-label">Total Expenditure</div>
+      <div class="stat-value">{{ total_spent | currency_inr }}</div>
+      <div class="stat-subtext">Actual amount paid</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon lavender">🏷️</div>
+    <div class="stat-content">
+      <div class="stat-label">Average Item Cost</div>
+      <div class="stat-value">
+        {% if purchases | length > 0 %}
+          {{ (total_spent / (purchases | length)) | currency_inr }}
+        {% else %}
+          ₹0.00
+        {% endif %}
+      </div>
+      <div class="stat-subtext">Per purchased item</div>
+    </div>
+  </div>
+</div>
+
+<!-- Purchase History Table -->
+<div class="card" style="padding: 1.5rem;">
+  <div class="card-header">
+    <h3 class="card-title"><span>📜</span> Purchase History</h3>
+    <a href="{{ url_for('products.index', status='wishlist') }}" class="btn btn-primary btn-sm">
+      <span>💖</span> Back to Active Wishlist
+    </a>
+  </div>
+
+  {% if purchases %}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Collection</th>
+            <th>Purchase Date</th>
+            <th>Amount Paid</th>
+            <th>Notes</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for purchase in purchases %}
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                  <div style="width:44px; height:44px; border-radius:var(--radius-sm); overflow:hidden; background:var(--bg-surface-alt); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                    {% if purchase.product and purchase.product.image_url %}
+                      <img src="{{ purchase.product.image_url }}" alt="{{ purchase.product.name }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                      <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--mint-100); color:var(--mint-600); font-size:1.1rem;">🛍️</div>
+                    {% else %}
+                      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--mint-100); color:var(--mint-600); font-size:1.1rem;">🛍️</div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    {% if purchase.product %}
+                      <a href="{{ url_for('products.detail', product_id=purchase.product.id) }}" style="font-weight:700; color:var(--text-main);">
+                        {{ purchase.product.name }}
+                      </a>
+                    {% else %}
+                      <span style="font-weight:700; color:var(--text-muted);">Deleted Product</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if purchase.product and purchase.product.collection %}
+                  <span class="badge badge-collection">{{ purchase.product.collection.name }}</span>
+                {% else %}
+                  <span class="badge" style="background:var(--bg-surface-alt); color:var(--text-light);">General</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-weight:600; color:var(--text-main);">{{ purchase.purchase_date.strftime('%d %B %Y') }}</span>
+              </td>
+              <td>
+                <span style="font-weight:800; color:var(--mint-600); font-size:1.05rem;">
+                  {{ purchase.formatted_amount }}
+                </span>
+              </td>
+              <td>
+                <span style="font-size:0.85rem; color:var(--text-muted);">
+                  {{ purchase.notes or "—" }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <form action="{{ url_for('purchases.undo_purchase', purchase_id=purchase.id) }}" method="POST" style="margin:0; display:inline-block;" onsubmit="return confirm('Revert purchase for \'{{ purchase.product.name if purchase.product else 'this item' }}\'? It will return to your active wishlist and spending will update.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline btn-sm" title="Undo Purchase and restore to wishlist">
+                    ↩ Undo Purchase
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align:center; padding:3.5rem 1rem;">
+      <div style="font-size:3rem; margin-bottom:1rem;">🛍️</div>
+      <h3>No purchases recorded yet</h3>
+      <p style="margin-top:0.5rem; margin-bottom:1.5rem;">
+        When you purchase items from your wishlist, mark them as purchased to track your shopping history.
+      </p>
+      <a href="{{ url_for('products.index') }}" class="btn btn-primary">
+        Go to Wishlist
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

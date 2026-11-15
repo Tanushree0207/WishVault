@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} – WishVault{% endblock %}
+{% block page_title %}Product Details{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('products.index') }}" class="btn btn-secondary btn-sm">
+      ← Back to Wishlist
+    </a>
+  </div>
+
+  <div class="card" style="padding: 2.5rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
+      <!-- Product Image Column -->
+      <div>
+        <div style="width: 100%; height: 340px; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-surface-alt); position: relative; border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center;">
+          {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="product-image-fallback" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 3rem;">
+              <span>✨ WishVault</span>
+            </div>
+          {% else %}
+            <div class="product-image-fallback" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+              <span>✨ WishVault</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Product Details Column -->
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+          {% if product.is_purchased %}
+            <span class="badge badge-purchased">✓ Purchased</span>
+          {% else %}
+            <span class="badge" style="background: var(--primary-100); color: var(--primary-700);">💖 In Wishlist</span>
+          {% endif %}
+
+          {% if product.collection %}
+            <a href="{{ url_for('collections.detail', collection_id=product.collection.id) }}" class="badge badge-collection">
+              🗂️ {{ product.collection.name }}
+            </a>
+          {% endif %}
+        </div>
+
+        <h1 style="font-size: 1.85rem; margin-bottom: 0.75rem;">{{ product.name }}</h1>
+
+        <div style="margin-bottom: 1.5rem;">
+          <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); font-weight: 700;">Price</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-700);">{{ product.formatted_price }}</div>
+        </div>
+
+        {% if product.description %}
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">Description & Notes</div>
+            <p style="font-size: 0.95rem; line-height: 1.6; white-space: pre-line;">{{ product.description }}</p>
+          </div>
+        {% endif %}
+
+        {% if product.purchase_url %}
+          <div style="margin-bottom: 1.5rem;">
+            <!-- Secure external link: rel="noopener noreferrer" prevents reverse tabnabbing -->
+            <a href="{{ product.purchase_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="gap: 0.5rem;">
+              <span>🔗</span> Open Store Product Link ↗
+            </a>
+          </div>
+        {% endif %}
+
+        <!-- If purchased, show purchase tracking summary -->
+        {% if product.is_purchased and product.purchase %}
+          <div style="background: var(--mint-50); border: 1px solid var(--mint-400); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="font-weight: 700; color: var(--mint-600); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>🎉</span> Purchase Record
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-main);">
+              <div>Actual Amount: <strong>{{ product.purchase.formatted_amount }}</strong></div>
+              <div>Purchased on: <strong>{{ product.purchase.purchase_date.strftime('%d %B %Y') }}</strong></div>
+              {% if product.purchase.notes %}
+                <div style="margin-top: 0.25rem;">Notes: <em>{{ product.purchase.notes }}</em></div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 2rem;">
+          Saved on {{ product.created_at.strftime('%d %B %Y, %I:%M %p') }}
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle);">
+          {% if not product.is_purchased %}
+            <button type="button"
+                    class="btn btn-blush"
+                    data-open-purchase-modal
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name }}"
+                    data-product-price="{{ product.price }}">
+              🛍️ Mark as Purchased
+            </button>
+          {% endif %}
+
+          <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-secondary">
+            ✏️ Edit Product
+          </a>
+
+          <form action="{{ url_for('products.delete', product_id=product.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to permanently delete this product?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">
+              🗑️ Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

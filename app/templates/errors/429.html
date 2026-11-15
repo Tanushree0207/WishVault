@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}429 – Rate Limit Exceeded | WishVault{% endblock %}
+
+{% block public_content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 500px; margin: 4rem auto;">
+  <div style="font-size: 3.5rem; margin-bottom: 1rem;">⏱️</div>
+  <h2 style="margin-bottom: 0.5rem;">Rate Limit Exceeded (429)</h2>
+  <p style="margin-bottom: 2rem;">
+    You have performed too many requests in a short period of time. Please wait a minute and try again.
+  </p>
+  <div style="display: flex; justify-content: center; gap: 1rem;">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Try Again</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 500px; margin: 4rem auto;">
+  <div style="font-size: 3.5rem; margin-bottom: 1rem;">⏱️</div>
+  <h2 style="margin-bottom: 0.5rem;">Rate Limit Exceeded (429)</h2>
+  <p style="margin-bottom: 2rem;">
+    You have performed too many requests in a short period of time. Please wait a minute and try again.
+  </p>
+  <div style="display: flex; justify-content: center; gap: 1rem;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

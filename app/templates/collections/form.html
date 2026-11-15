@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Collection{% else %}New Collection{% endif %} – WishVault{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Collection{% else %}Create Collection{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">
+      {% if is_edit %}✏️ Edit Collection{% else %}✨ New Collection{% endif %}
+    </h2>
+    <p>
+      {% if is_edit %}
+        Customize the name, theme, and aesthetic of your collection.
+      {% else %}
+        Create a custom category to organize your wishlist items.
+      {% endif %}
+    </p>
+  </div>
+
+  <form method="POST" action="">
+    {{ form.csrf_token }}
+
+    <div class="form-group">
+      <label class="form-label" for="name">{{ form.name.label.text }} *</label>
+      {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Travel Gear, Coffee Station, Cozy Bedroom...", id="name") }}
+      {% for error in form.name.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">{{ form.description.label.text }}</label>
+      {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="2", placeholder="What belongs in this collection?", id="description") }}
+      {% for error in form.description.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="icon">{{ form.icon.label.text }}</label>
+        {{ form.icon(class="form-control" + (" is-invalid" if form.icon.errors else ""), id="icon") }}
+        {% for error in form.icon.errors %}
+          <div class="form-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="color">{{ form.color.label.text }}</label>
+        {{ form.color(class="form-control" + (" is-invalid" if form.color.errors else ""), id="color") }}
+        {% for error in form.color.errors %}
+          <div class="form-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:2rem;">
+      <a href="{{ url_for('collections.index') }}" class="btn btn-secondary">Cancel</a>
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

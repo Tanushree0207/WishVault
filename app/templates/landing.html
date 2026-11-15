@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}WishVault – Your wishes, beautifully organized.{% endblock %}
+
+{% block public_content %}
+<div class="landing-hero">
+  <div class="landing-tagline">Personal Shopping & Wishlist Manager</div>
+  <h1 class="landing-headline">
+    Your wishes, <span style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">beautifully organized.</span>
+  </h1>
+  <p class="landing-sub">
+    WishVault lets you curate dream products, organize collections, track real purchases, and take control of your monthly shopping budget in INR with an elegant pastel lifestyle aesthetic.
+  </p>
+
+  <div class="landing-actions">
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+      ✨ Create Free Vault
+    </a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">
+      Sign In to Vault
+    </a>
+  </div>
+
+  <div style="margin-top: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); border: 1px solid var(--primary-200); padding: 0.6rem 1.25rem; border-radius: var(--radius-full); font-size: 0.85rem; color: var(--primary-700);">
+    <span>✨</span>
+    <span>Curated Wishlists • Shopping Tracker • Budget Management</span>
+  </div>
+</div>
+
+<div class="features-grid">
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--primary-100); color: var(--primary-600);">
+      💖
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Aesthetic Wishlist</h3>
+    <p>Organize dream items with images, descriptions, prices in INR (₹), and direct links to your favorite stores.</p>
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--blush-100); color: var(--blush-500);">
+      🗂️
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Curated Collections</h3>
+    <p>Categorize into Fashion, Electronics, Beauty, Books, Home & Living or design bespoke custom collections.</p>
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--mint-100); color: var(--mint-600);">
+      🛍️
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Shopping Tracker</h3>
+    <p>Mark items as purchased with actual purchase dates and prices. Easily undo accidental marks with one click.</p>
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--peach-100); color: var(--peach-500);">
+      💰
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Monthly Budget Manager</h3>
+    <p>Set monthly shopping budgets with automatic spending calculation, visual progress meters, and 80% threshold warnings.</p>
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--sky-100); color: var(--sky-600);">
+      🛡️
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Engineered for Security</h3>
+    <p>Strict IDOR authorization checks, Werkzeug password hashing, Flask-WTF CSRF protection, Flask-Limiter rate limiting, and parameterized queries.</p>
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-icon" style="background: var(--primary-100); color: var(--primary-700);">
+      🔒
+    </div>
+    <h3 style="margin-bottom: 0.5rem;">Strict Privacy</h3>
+    <p>Every user's wishlist, budgets, purchases, and collections remain strictly isolated and accessible only to their authenticated owner.</p>
+  </div>
+</div>
+{% endblock %}

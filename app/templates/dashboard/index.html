@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard – WishVault{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Welcome Hero Banner -->
+<div class="hero-banner">
+  <div class="hero-content">
+    <h1>Welcome back, {{ user.full_name.split()[0] }}! 🌸</h1>
+    <p class="hero-subtitle">
+      Here is your personal wishlist snapshot and spending overview for {{ current_month_name }} {{ current_year }}.
+    </p>
+  </div>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+    <a href="{{ url_for('products.create') }}" class="btn btn-primary">
+      <span>✨</span> Add to Wishlist
+    </a>
+    <a href="{{ url_for('budget.index') }}" class="btn btn-secondary">
+      <span>💰</span> Manage Budget
+    </a>
+  </div>
+</div>
+
+<!-- Key Metrics Stat Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon lavender">💖</div>
+    <div class="stat-content">
+      <div class="stat-label">Saved Products</div>
+      <div class="stat-value">{{ total_saved }}</div>
+      <div class="stat-subtext">{{ active_wishlist_count }} pending in wishlist</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon blush">🗂️</div>
+    <div class="stat-content">
+      <div class="stat-label">Collections</div>
+      <div class="stat-value">{{ total_collections }}</div>
+      <div class="stat-subtext">Organized categories</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon mint">🛍️</div>
+    <div class="stat-content">
+      <div class="stat-label">Purchased Items</div>
+      <div class="stat-value">{{ purchased_count }}</div>
+      <div class="stat-subtext">Fulfilled dreams</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon peach">💸</div>
+    <div class="stat-content">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value">{{ total_purchased_amount | currency_inr }}</div>
+      <div class="stat-subtext">Lifetime shopping</div>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly Budget Progress Card -->
+<div class="card" style="margin-bottom: 2rem;">
+  <div class="card-header">
+    <h3 class="card-title">
+      <span>📊</span> {{ current_month_name }} Shopping Budget
+    </h3>
+    <a href="{{ url_for('budget.index') }}" class="btn btn-outline btn-sm">Edit Budget</a>
+  </div>
+
+  {% if monthly_budget > 0 %}
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <span style="font-size:1.4rem; font-weight:800; color:var(--text-main);">{{ monthly_spent | currency_inr }}</span>
+        <span style="color:var(--text-muted); font-size:0.95rem;"> of {{ monthly_budget | currency_inr }} spent</span>
+      </div>
+      <div>
+        <span style="font-weight:700; color: {% if is_budget_exceeded %}var(--danger-text){% elif is_budget_warning %}var(--warning-text){% else %}var(--primary-600){% endif %};">
+          {{ spent_percentage }}% utilized
+        </span>
+      </div>
+    </div>
+
+    <!-- Visual Progress Meter -->
+    <div class="progress-container" style="height: 16px; margin-bottom: 0.75rem;">
+      <div class="progress-bar {% if is_budget_exceeded %}exceeded{% elif is_budget_warning %}warning{% else %}normal{% endif %}"
+           style="width: {{ [spent_percentage, 100] | min }}%;">
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--text-muted);">
+      <div>
+        {% if is_budget_exceeded %}
+          <span class="badge" style="background:var(--danger-bg); color:var(--danger-text); border:1px solid var(--danger-border);">
+            ⚠️ Budget Exceeded by {{ (monthly_spent - monthly_budget) | currency_inr }}
+          </span>
+        {% elif is_budget_warning %}
+          <span class="badge" style="background:var(--warning-bg); color:var(--warning-text); border:1px solid var(--warning-border);">
+            🔔 Warning: You have reached {{ spent_percentage }}% of your budget
+          </span>
+        {% else %}
+          <span style="color:var(--success-text); font-weight:600;">
+            ✓ Safe budget margin remaining: {{ remaining_budget | currency_inr }}
+          </span>
+        {% endif %}
+      </div>
+      <div>
+        Remaining: <strong>{{ remaining_budget | currency_inr }}</strong>
+      </div>
+    </div>
+  {% else %}
+    <div style="text-align:center; padding:1.5rem; background:var(--bg-surface-alt); border-radius:var(--radius-md);">
+      <p style="margin-bottom:1rem;">You haven't set a shopping budget for {{ current_month_name }} {{ current_year }} yet.</p>
+      <a href="{{ url_for('budget.index') }}" class="btn btn-primary btn-sm">Set Monthly Budget</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Two Column Layout: Recently Added & Recently Purchased -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+  <!-- Recently Added Products -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><span>💖</span> Recently Added</h3>
+      <a href="{{ url_for('products.index') }}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+
+    {% if recent_products %}
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for prod in recent_products %}
+          <div style="display:flex; align-items:center; gap:1rem; padding:0.75rem; border-radius:var(--radius-md); background:var(--bg-surface-alt); transition:background var(--transition-fast);">
+            <div style="width:52px; height:52px; border-radius:var(--radius-sm); overflow:hidden; background:var(--bg-surface); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+              {% if prod.image_url %}
+                <img src="{{ prod.image_url }}" alt="{{ prod.name }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--primary-100); color:var(--primary-500); font-size:1.2rem;">✨</div>
+              {% else %}
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--primary-100); color:var(--primary-500); font-size:1.2rem;">✨</div>
+              {% endif %}
+            </div>
+
+            <div style="flex:1; overflow:hidden;">
+              <a href="{{ url_for('products.detail', product_id=prod.id) }}" style="font-weight:700; font-size:0.92rem; color:var(--text-main); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                {{ prod.name }}
+              </a>
+              <div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem; margin-top:0.2rem;">
+                <span style="font-weight:700; color:var(--primary-700);">{{ prod.formatted_price }}</span>
+                {% if prod.collection %}
+                  <span>•</span>
+                  <span>{{ prod.collection.name }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              {% if prod.is_purchased %}
+                <span class="badge badge-purchased">Purchased</span>
+              {% else %}
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        style="padding: 0.3rem 0.65rem;"
+                        data-open-purchase-modal
+                        data-product-id="{{ prod.id }}"
+                        data-product-name="{{ prod.name }}"
+                        data-product-price="{{ prod.price }}"
+                        title="Mark as Purchased">
+                  🛍️
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align:center; padding:2.5rem 1rem;">
+        <p style="margin-bottom:1rem;">Your wishlist is waiting for its first dream product!</p>
+        <a href="{{ url_for('products.create') }}" class="btn btn-primary btn-sm">Add Product</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Recently Purchased Products -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><span>🛍️</span> Recently Purchased</h3>
+      <a href="{{ url_for('purchases.index') }}" class="btn btn-outline btn-sm">Shopping Tracker</a>
+    </div>
+
+    {% if recent_purchases %}
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for purchase in recent_purchases %}
+          <div style="display:flex; align-items:center; gap:1rem; padding:0.75rem; border-radius:var(--radius-md); background:var(--bg-surface-alt);">
+            <div style="width:52px; height:52px; border-radius:var(--radius-sm); overflow:hidden; background:var(--bg-surface); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+              {% if purchase.product and purchase.product.image_url %}
+                <img src="{{ purchase.product.image_url }}" alt="{{ purchase.product.name }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:var(--mint-100); color:var(--mint-600); font-size:1.2rem;">🛍️</div>
+              {% else %}
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--mint-100); color:var(--mint-600); font-size:1.2rem;">🛍️</div>
+              {% endif %}
+            </div>
+
+            <div style="flex:1; overflow:hidden;">
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                {{ purchase.product.name if purchase.product else "Purchased Item" }}
+              </div>
+              <div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem; margin-top:0.2rem;">
+                <span style="font-weight:700; color:var(--mint-600);">{{ purchase.formatted_amount }}</span>
+                <span>•</span>
+                <span>{{ purchase.purchase_date.strftime('%d %b %Y') }}</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="badge badge-purchased">✓ Fulfilled</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align:center; padding:2.5rem 1rem;">
+        <p style="margin-bottom:1rem;">No purchases recorded yet. When you buy something, mark it here to track your spending!</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

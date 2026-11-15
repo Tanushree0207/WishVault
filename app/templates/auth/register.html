@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account – WishVault{% endblock %}
+
+{% block public_content %}
+<div class="auth-card" style="max-width: 500px;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 48px; height: 48px; font-size: 1.5rem;">🌸</div>
+    <h2>Join WishVault</h2>
+    <p>Start organizing your shopping wishes and budgets</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('auth.register') }}">
+    {{ form.csrf_token }}
+
+    <div class="form-group">
+      <label class="form-label" for="full_name">{{ form.full_name.label.text }}</label>
+      {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="e.g. Priya Sharma", id="full_name") }}
+      {% for error in form.full_name.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">{{ form.email.label.text }}</label>
+      {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="you@domain.com", id="email") }}
+      {% for error in form.email.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">{{ form.password.label.text }}</label>
+      {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••", id="password") }}
+      <div class="form-hint">
+        Min 8 characters, with at least 1 uppercase, 1 lowercase, 1 number, and 1 special symbol.
+      </div>
+      {% for error in form.password.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="confirm_password">{{ form.confirm_password.label.text }}</label>
+      {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="••••••••", id="confirm_password") }}
+      {% for error in form.confirm_password.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top: 1.75rem;">
+      {{ form.submit(class="btn btn-primary btn-block btn-lg") }}
+    </div>
+  </form>
+
+  <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.9rem;">
+    Already have an account? <a href="{{ url_for('auth.login') }}"><strong>Sign In</strong></a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit {{ product.name }}{% else %}Add New Product{% endif %} – WishVault{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Product{% else %}Add to Wishlist{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">
+      {% if is_edit %}✏️ Edit Product{% else %}✨ Add to Wishlist{% endif %}
+    </h2>
+    <p>
+      {% if is_edit %}
+        Update details for this saved item in your WishVault.
+      {% else %}
+        Save a dream item, set its expected price, and organize it into a collection.
+      {% endif %}
+    </p>
+  </div>
+
+  <form method="POST" action="">
+    {{ form.csrf_token }}
+
+    <div class="form-group">
+      <label class="form-label" for="name">{{ form.name.label.text }} *</label>
+      {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Sony WH-1000XM5 Headphones", id="name") }}
+      {% for error in form.name.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="price">{{ form.price.label.text }} *</label>
+        {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="e.g. 2499.00", step="0.01", min="0.01", id="price") }}
+        {% for error in form.price.errors %}
+          <div class="form-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="collection_id">{{ form.collection_id.label.text }}</label>
+        {{ form.collection_id(class="form-control" + (" is-invalid" if form.collection_id.errors else ""), id="collection_id") }}
+        {% for error in form.collection_id.errors %}
+          <div class="form-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">{{ form.description.label.text }}</label>
+      {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3", placeholder="Color, size, why you want it, or discount codes...", id="description") }}
+      {% for error in form.description.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="image_url">{{ form.image_url.label.text }}</label>
+      {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="https://images.example.com/item.jpg", id="image_url") }}
+      <div class="form-hint">Direct link to product image (optional, https:// or http:// only).</div>
+      {% for error in form.image_url.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="purchase_url">{{ form.purchase_url.label.text }}</label>
+      {{ form.purchase_url(class="form-control" + (" is-invalid" if form.purchase_url.errors else ""), placeholder="https://store.example.com/product/123", id="purchase_url") }}
+      <div class="form-hint">Direct link to store or e-commerce listing (optional, https:// or http:// only).</div>
+      {% for error in form.purchase_url.errors %}
+        <div class="form-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:2rem;">
+      <a href="{{ url_for('products.index') }}" class="btn btn-secondary">Cancel</a>
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

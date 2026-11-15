@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}403 – Access Forbidden | WishVault{% endblock %}
+
+{% block public_content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 500px; margin: 4rem auto;">
+  <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔒</div>
+  <h2 style="margin-bottom: 0.5rem;">Access Forbidden (403)</h2>
+  <p style="margin-bottom: 2rem;">
+    You do not have permission to access or modify this item. WishVault enforces strict user data isolation.
+  </p>
+  <div style="display: flex; justify-content: center; gap: 1rem;">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Sign In</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 500px; margin: 4rem auto;">
+  <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔒</div>
+  <h2 style="margin-bottom: 0.5rem;">Access Forbidden (403)</h2>
+  <p style="margin-bottom: 2rem;">
+    You do not have permission to access or modify this item. Every user's vault items and budgets remain strictly private.
+  </p>
+  <div style="display: flex; justify-content: center; gap: 1rem;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

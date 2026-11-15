@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "products/_card.html" import render_product_card %}
+
+{% block title %}My Wishlist – WishVault{% endblock %}
+{% block page_title %}My Wishlist{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Controls -->
+<form method="GET" action="{{ url_for('products.index') }}" class="filter-bar">
+  <div class="search-input-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text"
+           name="q"
+           value="{{ search_query }}"
+           placeholder="Search products by name or notes..."
+           class="search-input"
+           aria-label="Search products">
+  </div>
+
+  <div class="filter-actions">
+    <!-- Category Filter -->
+    <select name="collection" class="form-control" style="width: auto; padding: 0.55rem 1rem; border-radius: var(--radius-full);" onchange="this.form.submit()">
+      <option value="0">All Collections</option>
+      {% for col in collections %}
+        <option value="{{ col.id }}" {% if selected_collection == col.id %}selected{% endif %}>
+          {{ col.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <!-- Purchase Status Filter -->
+    <select name="status" class="form-control" style="width: auto; padding: 0.55rem 1rem; border-radius: var(--radius-full);" onchange="this.form.submit()">
+      <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Items</option>
+      <option value="wishlist" {% if selected_status == 'wishlist' %}selected{% endif %}>Active Wishlist</option>
+      <option value="purchased" {% if selected_status == 'purchased' %}selected{% endif %}>Purchased Items</option>
+    </select>
+
+    <!-- Sorting -->
+    <select name="sort" class="form-control" style="width: auto; padding: 0.55rem 1rem; border-radius: var(--radius-full);" onchange="this.form.submit()">
+      <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+      <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+      <option value="price_low" {% if selected_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+      <option value="price_high" {% if selected_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+    </select>
+
+    <noscript>
+      <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    </noscript>
+
+    {% if search_query or selected_collection or selected_status != 'all' or selected_sort != 'newest' %}
+      <a href="{{ url_for('products.index') }}" class="btn btn-outline btn-sm" title="Clear Filters">
+        ✕ Clear
+      </a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Products Grid -->
+{% if products %}
+  <div class="products-grid">
+    {% for product in products %}
+      {{ render_product_card(product) }}
+    {% endfor %}
+  </div>
+{% else %}
+  <!-- Empty State -->
+  <div class="card" style="text-align: center; padding: 4rem 2rem; max-width: 540px; margin: 3rem auto;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🌸</div>
+    {% if search_query or selected_collection or selected_status != 'all' %}
+      <h3>No matching products found</h3>
+      <p style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+        Try refining your search keyword or clearing the active filters.
+      </p>
+      <a href="{{ url_for('products.index') }}" class="btn btn-secondary">Clear Filters</a>
+    {% else %}
+      <h3>Your wishlist is currently empty</h3>
+      <p style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+        Add your favorite products, clothing, tech gadgets, or books to start tracking them!
+      </p>
+      <a href="{{ url_for('products.create') }}" class="btn btn-primary">
+        <span>✨</span> Add First Product
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

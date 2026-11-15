@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Account Profile – WishVault{% endblock %}
+{% block page_title %}Account Profile{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;">
+  <!-- Account Overview Card -->
+  <div class="card" style="display: flex; align-items: center; gap: 1.5rem; padding: 2rem;">
+    <div class="user-avatar" style="width: 72px; height: 72px; font-size: 2rem; border-radius: var(--radius-lg);">
+      {{ user.full_name[0] | upper }}
+    </div>
+    <div style="flex: 1;">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">{{ user.full_name }}</h2>
+      <p style="margin-bottom: 0.5rem; font-weight: 500;">{{ user.email }}</p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="badge" style="background: var(--primary-100); color: var(--primary-700);">
+          Member since {{ user.created_at.strftime('%B %Y') }}
+        </span>
+        <span class="badge" style="background: var(--mint-100); color: var(--mint-600);">
+          🛡️ Werkzeug Scrypt Secured
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+    <!-- Update Profile Information Form -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><span>👤</span> Personal Information</h3>
+      </div>
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        {{ profile_form.csrf_token }}
+
+        <div class="form-group">
+          <label class="form-label" for="profile-full_name">Full Name</label>
+          {{ profile_form.full_name(class="form-control" + (" is-invalid" if profile_form.full_name.errors else ""), id="profile-full_name") }}
+          {% for error in profile_form.full_name.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address (Read-only)</label>
+          <input type="email" class="form-control" value="{{ user.email }}" disabled style="background: var(--bg-surface-alt); cursor: not-allowed;">
+          <div class="form-hint">Email address cannot be modified to prevent identity spoofing.</div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          {{ profile_form.submit(class="btn btn-primary btn-block", name="profile-submit") }}
+        </div>
+      </form>
+    </div>
+
+    <!-- Change Password Form -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><span>🔒</span> Change Password</h3>
+      </div>
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        {{ password_form.csrf_token }}
+
+        <div class="form-group">
+          <label class="form-label" for="pwd-current_password">Current Password</label>
+          {{ password_form.current_password(class="form-control" + (" is-invalid" if password_form.current_password.errors else ""), id="pwd-current_password", placeholder="••••••••") }}
+          {% for error in password_form.current_password.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pwd-new_password">New Password</label>
+          {{ password_form.new_password(class="form-control" + (" is-invalid" if password_form.new_password.errors else ""), id="pwd-new_password", placeholder="••••••••") }}
+          <div class="form-hint">Min 8 chars, uppercase, lowercase, digit & symbol.</div>
+          {% for error in password_form.new_password.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pwd-confirm_new_password">Confirm New Password</label>
+          {{ password_form.confirm_new_password(class="form-control" + (" is-invalid" if password_form.confirm_new_password.errors else ""), id="pwd-confirm_new_password", placeholder="••••••••") }}
+          {% for error in password_form.confirm_new_password.errors %}
+            <div class="form-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          {{ password_form.submit(class="btn btn-secondary btn-block", name="pwd-submit") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
